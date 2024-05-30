@@ -1,0 +1,50 @@
+[package]
+name = "my-cp-snark"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cpsnarks-set = { git = "https://github.com/kobigurk/cpsnarks-set" }
+
+accumulator = { git = "https://github.com/kobigurk/cpsnarks-set-accumulator" }
+quick-error = "1.2.3"
+rug = "1.7.0"
+ark-bls12-381 = { git = "https://github.com/arkworks-rs/curves" }
+merlin = "2.0.0"
+rand = { version = "0.7" }
+ark-ff = { git = "https://github.com/arkworks-rs/algebra" }
+ark-ec = { git = "https://github.com/arkworks-rs/algebra" }
+ark-serialize = { git = "https://github.com/arkworks-rs/algebra" }
+ark-relations = { git = "https://github.com/arkworks-rs/snark" }
+ark-r1cs-std = { git = "https://github.com/arkworks-rs/r1cs-std" }
+ark-crypto-primitives = { git = "https://github.com/arkworks-rs/crypto-primitives", branch = "main", features = [ "r1cs" ] }
+legogro16 = { git = "https://github.com/kobigurk/legogro16" }
+curve25519-dalek = { version = "3", optional = true, features = ["serde", "simd_backend"] }
+#curve25519-dalek = { version = "4.0.0-rc.2", optional = true, features = ["serde", "simd_backend"] }
+#curve25519-dalek = { version = "3.2.1", optional = true, features = ["serde", "simd_backend"] }
+bulletproofs = { git = "https://github.com/dalek-cryptography/bulletproofs", branch = "develop", optional = true, features = ["yoloproofs"] }
+digest = "0.8.1"
+blake2 = ">= 0.8.1"
+cfg-if = "0.1"
+gmp-mpfr-sys = "1.5.2"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+packed_simd_2 = "0.3.8"
+num-bigint = "0.4.4"
+serde_yaml = "0.9.34"
+
+
+[features]
+dalek = ["curve25519-dalek", "bulletproofs"]
+#arkworks = ["curve25519-dalek", "bulletproofs"]
+arkworks = []
+class = []
+default = ["dalek"]
+#default = ["arkworks"]
+
+[dev-dependencies]
+criterion = "0.3"
+
