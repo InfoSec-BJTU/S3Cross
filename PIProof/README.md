@@ -1,4 +1,4 @@
-# Overvoew
+# Overview
 
 We use the [\[cpsnark-set\]](https://github.com/kobigurk/cpsnarks-set) library for public identity proof.
 
