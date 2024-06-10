@@ -8,9 +8,9 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-	"unsafe"
 
 	"github.com/athanorlabs/go-dleq/types"
+	bp "github.com/neucc1997/bulletproofs"
 	ring "github.com/noot/ring-go"
 	"golang.org/x/crypto/sha3"
 )
@@ -103,7 +103,7 @@ func hexToBigInt(hex string) *big.Int {
 func main() {
 	// Initialization
 	curve := ring.Secp256k1()
-	fmt.Printf("Size of pp: %d\n", unsafe.Sizeof(curve))
+	// fmt.Printf("Size of pp: %d\n", unsafe.Sizeof(curve))
 
 	// ==========================
 	// == Batch key generation ==
@@ -135,9 +135,9 @@ func main() {
 	b := pris[7]
 	B := pubs[7]
 
-	println(len(b.Encode()))
-	fmt.Printf("dsk = %d\n", b.Encode())
-	fmt.Printf("dpk = %d\n", B.Encode())
+	// println(len(b.Encode()))
+	// fmt.Printf("dsk = %d\n", b.Encode())
+	// fmt.Printf("dpk = %d\n", B.Encode())
 
 	// // Encoding Test
 	// ind := curve.NewRandomScalar()
@@ -155,14 +155,16 @@ func main() {
 	d0 = e0.Sub(s0)
 	fmt.Printf("Supervisor key generation time: %v\n", d0)
 
-	// Pseudonym generation
+	// ==========================
+	// == Pseudonym generation ==
+	// ==========================
 	// == Start ==
 	s0 = time.Now()
 	p := curve.NewRandomScalar()
 	P := curve.ScalarBaseMul(p)
 
 	// Supervisory ciphertext c=(c1,c2)
-	// c1=P
+	c1 := P
 	c2 := D.ScalarMul(p).Add(B)
 
 	// GenPsdProof
@@ -190,7 +192,7 @@ func main() {
 	// VerifyPsdProof
 	// == Start
 	s0 = time.Now()
-	A_ := D.Sub(curve.BasePoint()).ScalarMul(za).Add(curve.ScalarBaseMul(zb)).Sub(c2.Sub(P).ScalarMul(curve.ScalarFromBytes(h)))
+	A_ := D.Sub(curve.BasePoint()).ScalarMul(za).Add(curve.ScalarBaseMul(zb)).Sub(c2.Sub(c1).ScalarMul(curve.ScalarFromBytes(h)))
 	var comb2 []byte
 	comb2 = append(curve.BasePoint().Encode(), P.Encode()...)
 	comb2 = append(comb2, D.Encode()...)
@@ -223,4 +225,134 @@ func main() {
 	fmt.Printf("Decrypt and verify time: %v\n", d0)
 	println(res)
 
+	s0 = time.Now()
+	Np := getPrime(prime_len)
+	e0 = time.Now()
+
+	d0 = e0.Sub(s0)
+	fmt.Printf("prime 250 generation time: %v\n", d0)
+	fmt.Printf("%s\n", Np)
+
+	for i := 0; i < 250; i++ {
+		s0 = time.Now()
+		Np = getPrime(prime_len)
+		e0 = time.Now()
+		d0 += e0.Sub(s0)
+	}
+	fmt.Printf("prime 250 generation time (avg): %v\n", d0/251)
+
+	// =========== S3Cross-SR: pi2 ===========
+	// rand := curve.NewRandomScalar()
+	// Rand := curve.ScalarBaseMul(rand)
+
+	// Random generator
+	h_sr := curve.ScalarBaseMul(curve.NewRandomScalar())
+
+	a := curve.NewRandomScalar()
+	jd := curve.ScalarFromInt(12)
+	one := curve.ScalarFromInt(1)
+	p_sr := a.Mul((b.Add(jd).Add(one)).Inverse())
+	P_sr := curve.ScalarBaseMul(p_sr)
+
+	//  Enc: Change the pseudonym private key and public key
+	c1_sr := curve.ScalarBaseMul(p_sr)
+	c2_sr := D.ScalarMul(p_sr).Add(B)
+
+	s0 = time.Now()
+	alpha_sr := curve.NewRandomScalar()
+	beta_sr := curve.NewRandomScalar()
+	gamma_sr := curve.NewRandomScalar()
+	theta_sr := curve.NewRandomScalar()
+
+	// A=P^{alpha+beta}
+	A_sr := P_sr.ScalarMul(alpha_sr.Add(beta_sr))
+	// B=(P/g)^{gamma}·g^{beta}
+	B_sr := D.Sub(curve.BasePoint()).ScalarMul(gamma_sr).Add(curve.BasePoint().ScalarMul(beta_sr))
+	// C=g^{alpha}·h^{theta_sr}
+	k_sr := curve.NewRandomScalar()
+	// Com=g^{jd}·h^{k}
+	Com_sr := curve.ScalarBaseMul(jd).Add(h_sr.ScalarMul(k_sr))
+	C_sr := curve.ScalarBaseMul(alpha_sr).Add(h_sr.ScalarMul(theta_sr))
+
+	var comb_sr []byte
+	comb_sr = append(A_sr.Encode(), B_sr.Encode()...)
+	comb_sr = append(comb_sr, C_sr.Encode()...)
+	comb_sr = append(comb_sr, P_sr.Encode()...)
+	comb_sr = append(comb_sr, D.Encode()...)
+	comb_sr = append(comb_sr, curve.BasePoint().Encode()...)
+	comb_sr = append(comb_sr, h_sr.Encode()...)
+	comb_sr = append(comb_sr, Com_sr.Encode()...)
+	hash_sr := sha3.Sum256(comb_sr)
+
+	z_alpha_sr := alpha_sr.Add(jd.Mul(curve.ScalarFromBytes(hash_sr)))
+	z_beta_sr := beta_sr.Add(b.Mul(curve.ScalarFromBytes(hash_sr)))
+	z_gamma_sr := gamma_sr.Add(p_sr.Mul(curve.ScalarFromBytes(hash_sr)))
+	z_theta_sr := theta_sr.Add(k_sr.Mul(curve.ScalarFromBytes(hash_sr)))
+
+	e0 = time.Now()
+	d0 = e0.Sub(s0)
+	fmt.Printf("pi2 generation time: %v\n", d0)
+
+	// pi2=(hash_sr,z_alpha_sr,z_beta_sr,z_gamma_sr,z_theta_sr)
+
+	// Verify
+	s0 = time.Now()
+	_A_sr := P_sr.ScalarMul(z_alpha_sr.Add(z_beta_sr)).Sub((curve.BasePoint().ScalarMul(a).Sub(P_sr)).ScalarMul(curve.ScalarFromBytes(hash_sr)))
+	_B_sr := D.Sub(curve.BasePoint()).ScalarMul(z_gamma_sr).Add(curve.BasePoint().ScalarMul(z_beta_sr)).Sub((c2_sr.Sub(c1_sr)).ScalarMul(curve.ScalarFromBytes(hash_sr)))
+	_C_sr := curve.ScalarBaseMul(z_alpha_sr).Add(h_sr.ScalarMul(z_theta_sr)).Sub(Com_sr.ScalarMul(curve.ScalarFromBytes(hash_sr)))
+
+	var _comb_sr []byte
+	_comb_sr = append(_A_sr.Encode(), _B_sr.Encode()...)
+	_comb_sr = append(_comb_sr, _C_sr.Encode()...)
+	_comb_sr = append(_comb_sr, P_sr.Encode()...)
+	_comb_sr = append(_comb_sr, D.Encode()...)
+	_comb_sr = append(_comb_sr, curve.BasePoint().Encode()...)
+	_comb_sr = append(_comb_sr, h_sr.Encode()...)
+	_comb_sr = append(_comb_sr, Com_sr.Encode()...)
+	_hash_sr := sha3.Sum256(_comb_sr)
+	res = curve.ScalarFromBytes(hash_sr).Eq(curve.ScalarFromBytes(_hash_sr))
+	if res {
+		fmt.Println("pi2 verification passed")
+	}
+	e0 = time.Now()
+	d0 = e0.Sub(s0)
+	fmt.Printf("pi2 verification time: %v\n", d0)
+
+	// // p_sr Test
+	// ta := curve.ScalarFromInt(24)
+	// tb := curve.ScalarFromInt(2)
+	// tjd := curve.ScalarFromInt(5)
+	// tone := curve.ScalarFromInt(1)
+	// t_p_sr := ta.Mul((tb.Add(tjd).Add(tone)).Inverse())
+
+	// // p_sr := a.Mul((b.Add(jd).Add(one)).Inverse())
+
+	// _t_p_sr := curve.ScalarFromInt(3)
+
+	// println(t_p_sr)
+	// println(_t_p_sr)
+	// println(t_p_sr.Eq(_t_p_sr))
+
+	// the scalar we want to generate a range proof for
+	v := big.NewInt(12)
+	//
+	// gamma := big.NewInt(10)
+	gamma := new(big.Int)
+	gamma.SetBytes(k_sr.Encode())
+	// 0 to 2^4-1
+	prover := bp.NewProver(4)
+
+	// V = γH + vG.
+	V := bp.Commit(gamma, prover.BlindingGenerator, v, prover.ValueGenerator)
+
+	proof, err := prover.CreateRangeProof(V, v, gamma, [32]byte{}, [16]byte{})
+	if err != nil {
+		fmt.Println("failed to create range proof: ", err)
+	}
+
+	if !prover.Verify(V, proof) {
+		fmt.Println("Expected valid proof")
+	} else {
+		fmt.Println("Valid bp proof")
+	}
 }
