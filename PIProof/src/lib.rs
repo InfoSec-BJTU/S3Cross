@@ -271,7 +271,7 @@ pub fn test_alg() -> (u128, u128) {
     rng1.seed(&Integer::from(13));
     let mut rng2 = thread_rng();
 
-    // 可将Rsa2048取值变更为手动生成的大素数乘积
+    // The value of Rsa2048 can be changed to a manually generated product of large prime numbers
     let mut crs =
         Protocol::<Rsa2048, RistrettoPoint, HPProtocol>::setup(
             &params, &mut rng1, &mut rng2,
