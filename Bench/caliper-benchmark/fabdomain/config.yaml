@@ -1,0 +1,36 @@
+test:
+  workers:
+    number: 5
+  rounds:
+    - label: Create a psd.
+      # 5000 transactions should create around 1000 psds per worker but not guaranteed
+      # so need to set asset limits to less than 1000 for the other tests
+      txNumber: 5000
+      rateControl:
+          type: fixed-load
+          opts:
+            transactionLoad: 5
+      workload:
+        module: benchmarks/samples/fabric/fabdomain/createPsd.js
+    # - label: Query all psds.
+    #   txDuration: 30
+    #   rateControl:
+    #       type: fixed-load
+    #       opts:
+    #         transactionLoad: 5
+    #   workload:
+    #     module: benchmarks/samples/fabric/fabdomain/queryAllPsds.js
+    #     arguments:
+    #       assets: 500
+    #       startKey: '1'
+    #       endKey: '50'
+    - label: Query a psd.
+      txDuration: 30
+      rateControl:
+          type: fixed-load
+          opts:
+            transactionLoad: 5
+      workload:
+        module: benchmarks/samples/fabric/fabdomain/queryPsd.js
+        arguments:
+          assets: 5000
