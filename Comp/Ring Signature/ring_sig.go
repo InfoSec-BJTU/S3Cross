@@ -47,4 +47,6 @@ func signAndVerify(curve ring.Curve) {
 func main() {
 	fmt.Println("using secp256k1...")
 	signAndVerify(ring.Secp256k1())
+	fmt.Println("using Ed25519...")
+	signAndVerify(ring.Ed25519())
 }
