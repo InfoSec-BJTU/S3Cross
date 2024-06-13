@@ -6,7 +6,7 @@ S$^3$Cross: Blockchain-Based Cross-Domain Authentication with Self-Sovereign and
 
 ## Usage
 
-All the codes are tested on a Mac Studio (M1 Max, 64GB RAM, macOS 14.0)
+All the codes are tested on a Mac Studio (M1 Max, 64GB RAM, macOS 14.4.1)
 
 |Language|Version|Architecture|
 |:------:|-------|------------|
