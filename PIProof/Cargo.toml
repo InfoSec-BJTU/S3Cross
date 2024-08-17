@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cpsnarks-set = { git = "https://github.com/kobigurk/cpsnarks-set" }
+cpsnarks-set = { git = "https://github.com/neucc1997/cpsnarks-set" }
 
 accumulator = { git = "https://github.com/kobigurk/cpsnarks-set-accumulator" }
 quick-error = "1.2.3"
