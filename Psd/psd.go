@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/athanorlabs/go-dleq/types"
-	bp "github.com/neucc1997/bulletproofs"
 	ring "github.com/noot/ring-go"
 	"golang.org/x/crypto/sha3"
 )
@@ -114,6 +113,7 @@ func main() {
 	const size = 16
 	const idx = 0
 	const prime_len = "250"
+	const prime_len_2 = "1024"
 
 	pris := make([]types.Scalar, size)
 	pubs := make([]types.Point, size)
@@ -241,6 +241,23 @@ func main() {
 	}
 	fmt.Printf("prime 250 generation time (avg): %v\n", d0/251)
 
+
+	s0 = time.Now()
+	Np = getPrime(prime_len_2)
+	e0 = time.Now()
+
+	d0 = e0.Sub(s0)
+	fmt.Printf("prime 1024 generation time: %v\n", d0)
+	fmt.Printf("%s\n", Np)
+
+	for i := 0; i < 50; i++ {
+		s0 = time.Now()
+		Np = getPrime(prime_len_2)
+		e0 = time.Now()
+		d0 += e0.Sub(s0)
+	}
+	fmt.Printf("prime 1024 generation time (avg): %v\n", d0/51)
+
 	// =========== S3Cross-SR: pi2 ===========
 	// rand := curve.NewRandomScalar()
 	// Rand := curve.ScalarBaseMul(rand)
@@ -333,26 +350,75 @@ func main() {
 	// println(_t_p_sr)
 	// println(t_p_sr.Eq(_t_p_sr))
 
-	// the scalar we want to generate a range proof for
-	v := big.NewInt(12)
-	//
-	// gamma := big.NewInt(10)
-	gamma := new(big.Int)
-	gamma.SetBytes(k_sr.Encode())
-	// 0 to 2^4-1
-	prover := bp.NewProver(4)
+	// s0 = time.Now()
+	// // the scalar we want to generate a range proof for
+	// v := big.NewInt(12)
+	// //
+	// // gamma := big.NewInt(10)
+	// gamma := new(big.Int)
+	// gamma.SetBytes(k_sr.Encode())
+	
+	// prover := bp.NewProver(4)
 
-	// V = γH + vG.
-	V := bp.Commit(gamma, prover.BlindingGenerator, v, prover.ValueGenerator)
+	// // V = γH + vG.
+	// V := bp.Commit(gamma, prover.BlindingGenerator, v, prover.ValueGenerator)
 
-	proof, err := prover.CreateRangeProof(V, v, gamma, [32]byte{}, [16]byte{})
-	if err != nil {
-		fmt.Println("failed to create range proof: ", err)
-	}
+	// proof, err := prover.CreateRangeProof(V, v, gamma, [32]byte{}, [16]byte{})
+	// if err != nil {
+	// 	fmt.Println("failed to create range proof: ", err)
+	// }
+	// e0 = time.Now()
+	// d0 = e0.Sub(s0)
+	// fmt.Printf("pi2_range generation time: %v\n", d0)
 
-	if !prover.Verify(V, proof) {
-		fmt.Println("Expected valid proof")
-	} else {
-		fmt.Println("Valid bp proof")
-	}
+	// s0 = time.Now()
+	// if !prover.Verify(V, proof) {
+	// 	fmt.Println("Expected valid proof")
+	// } else {
+	// 	fmt.Println("Valid bp proof")
+	// }
+	// e0 = time.Now()
+	// d0 = e0.Sub(s0)
+	// fmt.Printf("pi2_range verification time: %v\n", d0)
+
+
+
+
+
+	//  Basic benchmark
+
+	// s0 = time.Now()
+	// T_mul := curve.ScalarBaseMul(pris[3]);
+	// e0 = time.Now()
+
+	// d0 = e0.Sub(s0)
+	// fmt.Printf("T_mul time: %v\n", d0)
+	// fmt.Printf("%s\n", T_mul.Encode())
+
+	// for i := 0; i < 250; i++ {
+	// 	s0 = time.Now()
+	// 	T_mul = curve.ScalarBaseMul(pris[3]);
+	// 	e0 = time.Now()
+	// 	d0 += e0.Sub(s0)
+	// }
+	// fmt.Printf("T_mul time (avg): %v\n", d0/251)
+
+
+	// T_add_1 := curve.ScalarBaseMul(pris[3]);
+	// T_add_2 := curve.ScalarBaseMul(pris[4]);
+	// s0 = time.Now()
+	// T_add := T_add_1.Add(T_add_2);
+	// e0 = time.Now()
+	
+	// d0 = e0.Sub(s0)
+	// fmt.Printf("T_add time: %v\n", d0)
+	// fmt.Printf("%s\n", T_add.Encode())
+
+	// for i := 0; i < 250; i++ {
+	// 	s0 = time.Now()
+	// 	T_add = T_add_1.Add(T_add_2);
+	// 	e0 = time.Now()
+	// 	d0 += e0.Sub(s0)
+	// }
+	// fmt.Printf("T_add time (avg): %v\n", d0/251)
 }

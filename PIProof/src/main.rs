@@ -9,8 +9,8 @@ fn main() {
         ti = ti + p;
         ti2 = ti2 + v;
     }
-    println!("cpsnark prove: {}", ti/lop);
-    println!("cpsnark verify: {}", ti2/lop);
+    println!("Time for proving 'PIProof' : {}", ti/lop);
+    println!("Time for verifying 'PIProof' : {}", ti2/lop);
 
 }
 

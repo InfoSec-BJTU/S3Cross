@@ -376,7 +376,7 @@ checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
 [[package]]
 name = "cpsnarks-set"
 version = "0.1.0"
-source = "git+https://github.com/kobigurk/cpsnarks-set#f8c7db66b7519b91dcda16caee6cb84949e8911b"
+source = "git+https://github.com/neucc1997/cpsnarks-set#f7d4b7dec73cfb037932b4ac40ce7bb53ae0e066"
 dependencies = [
  "accumulator",
  "ark-bls12-381",
